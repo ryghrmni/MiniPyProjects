@@ -3,6 +3,10 @@ import requests
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import ttkbootstrap
+import folium
+from tkinter import ttk
+from tkhtmlview import HTMLLabel
+import tkintermapview
 
 def get_weather(city):
     API_key = "b0ab593e36fa193be7c97364b5f53da8"
@@ -17,30 +21,36 @@ def get_weather(city):
     desc = weather['weather'][0]['description']
     city = weather['name']
     country = weather['sys']['country']
+    lat = weather['coord']['lat'] 
+    lon = weather['coord']['lon']
 
     icon_url = f"https://openweathermap.org/img/wn/{icon_id}@2x.png"
-    return (icon_url, temp, desc, city, country)
+    return (icon_url, temp, desc, city, country, lat, lon)
+
 
 def search():
     city = city_entry.get()
     result = get_weather(city)
     if result is None:
         return
-    
-    icon_url, temp, desc, city, country = result
-    location_label.configure(text = f"{city}, {country}")
+
+    icon_url, temp, desc, city, country, lat, lon = result
+    location_label.configure(text=f"{city}, {country}")
 
     image = Image.open(requests.get(icon_url, stream=True).raw)
     icon = ImageTk.PhotoImage(image)
-    icon_label.configure(image = icon)
+    icon_label.configure(image=icon)
     icon_label.image = icon
 
-    temp_label.configure(text = f"Temperature: {temp:.2f} C")
-    description_label.configure(text = f"Description: {desc}")
+    temp_label.configure(text=f"Temperature: {temp:.2f} C")
+    description_label.configure(text=f"Description: {desc}")
+
+    map_widget.set_position(lat, lon)  
+    map_widget.set_zoom(15)
 
 root = ttkbootstrap.Window(themename="morph")
 root.title("Weather App")
-root.geometry("600x600")
+root.geometry("1000x1000")
 
 city_entry = ttkbootstrap.Entry(root, font = "Helvetica, 18")
 city_entry.pack(pady=10)
@@ -59,5 +69,8 @@ temp_label.pack()
 
 description_label = tk.Label(root, font="Helvetica, 20")
 description_label.pack()
+
+map_widget = tkintermapview.TkinterMapView(root, width=800, height=600, corner_radius=0)
+map_widget.pack()
 
 root.mainloop()
